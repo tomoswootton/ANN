@@ -4,6 +4,7 @@ import java.util.ArrayList;
 class ANN {
 
   int numInputs;
+  int numOutputs;
   int numHiddenNodes;
   int numHiddenLayers;
 
@@ -15,18 +16,19 @@ class ANN {
   //wijk represents for layer i each weight from node j to node k.
   //layer 0 is input layer
   //output is final layer
-  ArrayList<ArrayList<Double>> weightsList = new ArrayList<ArrayList<Double>>();
+  ArrayList<ArrayList<ArrayList<Double>>> weightsList = new ArrayList<ArrayList<ArrayList<Double>>>();
 
   public static void main(String[] args) {
-    new ANN(2,4,1);
+    new ANN(2,1,4,1);
   }
 
   //needs number of inpit and hidden nodes to construct
-  public ANN(int numInputs, int numHiddenNodes, int numHiddenLayers) {
+  public ANN(int numInputs, int numOutputs, int numHiddenNodes, int numHiddenLayers) {
     this.numInputs = numInputs;
+    this.numOutputs = numOutputs;
     this.numHiddenNodes = numHiddenNodes;
     this.numHiddenLayers = numHiddenLayers;
-    System.out.println("inputs: "+numInputs+"\nhidden: "+numHiddenNodes+"\nlayers: "+numHiddenLayers);
+    System.out.println("inputs: "+numInputs+"\noutputs: "+numOutputs+"\nhidden nodes: "+numHiddenNodes+"\nhidden layers: "+numHiddenLayers);
     //check valid number of hidden nodes given
     if (numHiddenNodes % numHiddenLayers != 0) {
       System.out.println("ERROR: Number of hidden nodes must be divisible by number of hidden layers");
@@ -59,12 +61,9 @@ class ANN {
   private void makeWeightsList() {
     int numHiddenNodesPerLayer = numHiddenNodes/numHiddenLayers;
 
-    //for input nodes to first hidden layer
-    //layer 0
-
     //for each layer
-    for (int i=0;i<=numHiddenLayers-1;i++) {
-      //matrix of weights from node i to j
+    for (int i=0;i<=numHiddenLayers;i++) {
+      //matrix[i][j] of weights from node i to j
       ArrayList<ArrayList<Double>> matrix = new ArrayList<ArrayList<Double>>();
       //if input layer
       if(i==0) {
@@ -76,16 +75,26 @@ class ANN {
             matrix.get(j).add(1.0);
           }
         }
+        //add to full weights data structure
+        System.out.println("each input matrix = "+matrix);
+        weightsList.add(matrix);
+
       //if hidden layer to output layer
-    } else if (i==numHiddenLayers-1) {
-      matrix.add(new ArrayList<Double>());
+    } else if (i==numHiddenLayers) {
         //for each hidden node to output weight
         for (int j=0;j<=numHiddenNodesPerLayer-1;j++) {
-          matrix.get(numHiddenLayers-1).add(1.0);
+          matrix.add(new ArrayList<Double>());
+          //for each output
+          for (int k=0;k<=numOutputs-1;k++) {
+            matrix.get(j).add(1.0);
+          }
         }
+        System.out.println("hidden to output matrix = "+matrix);
+        weightsList.add(matrix);
+
       //if hidden node to hidden node
     } else {
-      //from each ndpe
+      //from each node
       for (int j=0;j<=numHiddenNodesPerLayer-1;j++) {
         matrix.add(new ArrayList<Double>());
         //to each hidden node
@@ -93,10 +102,13 @@ class ANN {
           matrix.get(j).add(1.0);
         }
       }
-    }
+      System.out.println("hidden to hidden matrix = "+matrix);
+      weightsList.add(matrix);
 
-      System.out.println("matrix = "+matrix);
     }
+    System.out.println("weights = "+weightsList);
+
+  }
 
 
 
