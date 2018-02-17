@@ -3,20 +3,20 @@ import java.util.ArrayList;
 
 class ANN {
 
-  int numInputs;
-  int numOutputs;
-  int numHiddenNodes;
-  int numHiddenLayers;
+  private int numInputs;
+  private int numOutputs;
+  private int numHiddenNodes;
+  private int numHiddenLayers;
 
-  ArrayList<Double> inputValuesList = new ArrayList<Double>();
-  //array holds biases of each hidden node
-  //first n entries are 0, n = numInputs
-  ArrayList<Double> nodesBiasList = new ArrayList<Double>();
+  //array holds input values, biases of each hidden node and output values
+  //first n entries are inputs, n = numInputs, last m outputs, m=numOutputs
+  private ArrayList<Double> nodesValueList = new ArrayList<Double>();
+
   //3 dimensioal matrix of weights
   //wijk represents for layer i each weight from node j to node k.
   //layer 0 is input layer
   //output is final layer
-  ArrayList<ArrayList<ArrayList<Double>>> weightsList = new ArrayList<ArrayList<ArrayList<Double>>>();
+  private ArrayList<ArrayList<ArrayList<Double>>> weightsList = new ArrayList<ArrayList<ArrayList<Double>>>();
 
   public static void main(String[] args) {
     new ANN(2,1,4,1);
@@ -35,29 +35,39 @@ class ANN {
     }
     makeNodesList();
     makeWeightsList();
+
+    //test inputs
+    ArrayList<Double> testInputs = new ArrayList<Double>();
+    testInputs.add(4.3);
+    testInputs.add(7.9);
+    setInputs(testInputs);
+    System.out.println("nodes list after inputs change: "+nodesValueList);
+
     // weightsList = {{}}
   }
 
-  //fills nodesBiasList with place holders for input/output nodes and
+  //fills nodesValueList with place holders for input/output nodes and
   //gives biases to hidden nodes with values between -2/n and 2/n. n=numInputs
   private void makeNodesList() {
 
     //0 entries for input values, these will be replaced for each pass
     for(int i=0;i<=numInputs-1;i++) {
-      nodesBiasList.add(0.0);
+      nodesValueList.add(0.0);
     }
 
     for(int i=numInputs;i<numHiddenNodes+numInputs;i++) {
-      nodesBiasList.add((-2/this.numInputs) + (Math.random() * (((2/this.numInputs) - (-2/this.numInputs)) + 1)));
+      nodesValueList.add((-2/this.numInputs) + (Math.random() * (((2/this.numInputs) - (-2/this.numInputs)) + 1)));
     }
 
-    //add output node
-    nodesBiasList.add(0.0);
+    //add output nodes
+    for (int i=0;i<=numOutputs;i++) {
+      nodesValueList.add(0.0);
+    }
 
-    System.out.println("init nodes list: "+nodesBiasList);
+    System.out.println("init nodes list: "+nodesValueList);
   }
 
-  //using nodesBiasList, construct 3-d matrix of weights
+  //using nodesValueList, construct 3-d matrix of weights
   private void makeWeightsList() {
     int numHiddenNodesPerLayer = numHiddenNodes/numHiddenLayers;
 
@@ -76,7 +86,7 @@ class ANN {
           }
         }
         //add to full weights data structure
-        System.out.println("each input matrix = "+matrix);
+        System.out.println("input to hidden matrix = "+matrix);
         weightsList.add(matrix);
 
       //if hidden layer to output layer
@@ -106,17 +116,36 @@ class ANN {
       weightsList.add(matrix);
 
     }
-    System.out.println("weights = "+weightsList);
+  }
+  System.out.println("init weightsList structure = "+weightsList);
+  }
 
+  private void setNodeList(int node, double bias) {
+    nodesValueList.set(node, bias);
   }
 
 
 
-    //for each node on layer + 1
+  //control methods
 
+  public void setInputs(ArrayList<Double> inputs) {
+    //check for correct list size
+    if (inputs.size() != numInputs) {
+      System.out.println("ERROR in setInputNodes(): incorrect inputs list size");
+      return;
+    }
+    //set input values in nodesValueList
+    for (int i=0;i<=numInputs-1;i++) {
+      setNodeList(i, inputs.get(i));
+    }
   }
-  //forward pass through network returns
-  public Double forwardPass(ArrayList<Double> input) {
+
+  //forward pass through network
+  public Double forwardPass() {
+    //for each node that isnt input
+
+    //calculate sum
+
     return 0.0;
   }
 
