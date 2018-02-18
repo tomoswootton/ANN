@@ -7,6 +7,7 @@ class ANN {
   private int numOutputs;
   private int numHiddenNodes;
   private int numHiddenLayers;
+  private int numHiddenNodesPerLayer;
 
   //array holds input values, biases of each hidden node and output values
   //first n entries are inputs, n = numInputs, last m outputs, m=numOutputs
@@ -19,8 +20,12 @@ class ANN {
   private ArrayList<ArrayList<ArrayList<Double>>> weightsList = new ArrayList<ArrayList<ArrayList<Double>>>();
 
   public static void main(String[] args) {
-    new ANN(2,1,4,1);
+    new ANN(2,1,2,1);
   }
+
+
+
+  //init methods
 
   //needs number of inpit and hidden nodes to construct
   public ANN(int numInputs, int numOutputs, int numHiddenNodes, int numHiddenLayers) {
@@ -28,22 +33,37 @@ class ANN {
     this.numOutputs = numOutputs;
     this.numHiddenNodes = numHiddenNodes;
     this.numHiddenLayers = numHiddenLayers;
-    System.out.println("inputs: "+numInputs+"\noutputs: "+numOutputs+"\nhidden nodes: "+numHiddenNodes+"\nhidden layers: "+numHiddenLayers);
+    this.numHiddenNodesPerLayer = numHiddenNodes/numHiddenLayers;
+    System.out.println("\ninit info: \n");
+    System.out.println("inputs: "+numInputs+"\noutputs: "+numOutputs+"\nhidden nodes: "+numHiddenNodes+"\nhidden layers: "+numHiddenLayers+"\n");
     //check valid number of hidden nodes given
     if (numHiddenNodes % numHiddenLayers != 0) {
       System.out.println("ERROR: Number of hidden nodes must be divisible by number of hidden layers");
     }
-    makeNodesList();
+    // makeNodesList();
     makeWeightsList();
 
-    //test inputs
-    ArrayList<Double> testInputs = new ArrayList<Double>();
-    testInputs.add(4.3);
-    testInputs.add(7.9);
-    setInputs(testInputs);
-    System.out.println("nodes list after inputs change: "+nodesValueList);
+    //test example values
+    nodesValueList.add(1.0);
+    nodesValueList.add(0.0);
+    nodesValueList.add(1.0);
+    nodesValueList.add(-6.0);
+    nodesValueList.add(-3.92);
+    System.out.println("Nodes List: "+nodesValueList);
 
-    // weightsList = {{}}
+    //wijk represents for layer i each weight from node j to node k.
+    System.out.println("init Weights List: "+weightsList);
+    weightsList.get(0).get(0).set(0,3.0);
+    weightsList.get(0).get(0).set(1,6.0);
+    weightsList.get(0).get(1).set(0,4.0);
+    weightsList.get(0).get(1).set(1,5.0);
+    weightsList.get(1).get(0).set(0,2.0);
+    weightsList.get(1).get(1).set(0,4.0);
+
+    System.out.println("weights List: "+weightsList);
+
+    System.out.println("\nsumSj for node 0: "+sumSj(2));
+
   }
 
   //fills nodesValueList with place holders for input/output nodes and
@@ -60,7 +80,7 @@ class ANN {
     }
 
     //add output nodes
-    for (int i=0;i<=numOutputs;i++) {
+    for (int i=0;i<=numOutputs-1;i++) {
       nodesValueList.add(0.0);
     }
 
@@ -69,7 +89,6 @@ class ANN {
 
   //using nodesValueList, construct 3-d matrix of weights
   private void makeWeightsList() {
-    int numHiddenNodesPerLayer = numHiddenNodes/numHiddenLayers;
 
     //for each layer
     for (int i=0;i<=numHiddenLayers;i++) {
@@ -86,11 +105,11 @@ class ANN {
           }
         }
         //add to full weights data structure
-        System.out.println("input to hidden matrix = "+matrix);
+        System.out.println("input to hidden matrix: "+matrix);
         weightsList.add(matrix);
 
       //if hidden layer to output layer
-    } else if (i==numHiddenLayers) {
+      } else if (i==numHiddenLayers) {
         //for each hidden node to output weight
         for (int j=0;j<=numHiddenNodesPerLayer-1;j++) {
           matrix.add(new ArrayList<Double>());
@@ -99,25 +118,24 @@ class ANN {
             matrix.get(j).add(1.0);
           }
         }
-        System.out.println("hidden to output matrix = "+matrix);
+        System.out.println("hidden to output matrix: "+matrix);
         weightsList.add(matrix);
 
       //if hidden node to hidden node
-    } else {
+      } else {
       //from each node
-      for (int j=0;j<=numHiddenNodesPerLayer-1;j++) {
-        matrix.add(new ArrayList<Double>());
-        //to each hidden node
-        for (int k=0;k<=numHiddenNodesPerLayer-1;k++) {
-          matrix.get(j).add(1.0);
+        for (int j=0;j<=numHiddenNodesPerLayer-1;j++) {
+          matrix.add(new ArrayList<Double>());
+          //to each hidden node
+          for (int k=0;k<=numHiddenNodesPerLayer-1;k++) {
+            matrix.get(j).add(1.0);
+          }
         }
-      }
-      System.out.println("hidden to hidden matrix = "+matrix);
+      System.out.println("hidden to hidden matrix: "+matrix);
       weightsList.add(matrix);
-
+      }
     }
-  }
-  System.out.println("init weightsList structure = "+weightsList);
+    System.out.println("init weightsList structure: "+weightsList+"\n");
   }
 
   private void setNodeList(int node, double bias) {
@@ -140,12 +158,86 @@ class ANN {
     }
   }
 
-  //forward pass through network
-  public Double forwardPass() {
-    //for each node that isnt input
 
+
+  //forward pass methods
+
+  public Double forwardPass() {
+    //array of sum values for non-input nodes
+    //sumValues index 0 is beginning of NON-INPUT nodes, final index is outputs
+    ArrayList<Double> sumValues = new ArrayList<Double>();
+
+    //for each node that isnt input
+    for (int i=numInputs;i<=nodesValueList.size()-numInputs;i++) {
+      sumValues.add(sumSj(i-numInputs));
+    }
     //calculate sum
 
+    return 0.0;
+  }
+
+  //calculate sumValue=Sj for node j
+  //Sj = SUMi(wij*uj)
+  //TODO abstract method for >1 hidden layer and >1 output
+  private Double sumSj(int node) {
+    //wijk represents for layer i each weight from node j to node k.
+
+    //check for invalid node values
+    if (node > numHiddenNodes+1) {
+      System.out.println("ERROR: invalide node ID passed to sumSj.");
+      System.exit(0);
+    }
+
+    //find which layer node is in
+    int layer=1;
+    for (int i=1;i<=numHiddenLayers+1;i++) {
+      if (node < i*numHiddenNodesPerLayer) {
+        layer = i;
+        System.out.println("\nnode "+node+" in layer "+layer);
+        break;
+      }
+    }
+    //find which number in layer node is
+    int nodeNumInLayer = node % numHiddenNodesPerLayer;
+    System.out.println("nodeNumInLayer: "+nodeNumInLayer);
+
+    Double Sj;
+    //Sj = SUMi(wij*uj)
+    //if layer 1, do for each input
+    if (layer==1) {
+      //for each input
+      for (int i=0;i<numInputs;i++) {
+            double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
+            System.out.println("wij: "+wij);
+            double uj = nodesValueList.get(i);
+            System.out.println("uj: "+uj);
+            // System.out.println("Sj value for i="+i+" is ="+Sj);
+
+      }
+    }
+
+    //TODO if hidden layer to hidden layer
+
+    //if hidden layer to output
+    if (layer==numHiddenLayers+1) {
+      //for each hidden layer node
+      for (int i=0;i<numHiddenNodesPerLayer;i++) {
+            double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
+            System.out.println("wij: "+wij);
+            double uj = nodesValueList.get(i+((layer-1)*numHiddenNodesPerLayer));
+            System.out.println("uj: "+uj);
+            // System.out.println("Sj value for i="+i+" is ="+Sj);
+
+      }
+    }
+
+    //if hidden layer to hidden layer
+
+    //if hidden layer to output
+
+
+    // if (node)
+    // weightsList.get()
     return 0.0;
   }
 
