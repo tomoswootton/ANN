@@ -61,8 +61,8 @@ class ANN {
     weightsList.get(1).get(1).set(0,4.0);
 
     System.out.println("weights List: "+weightsList);
-
-    System.out.println("\nsumSj for node 0: "+sumSj(2));
+    forwardPass();
+    System.out.println("\nforward pass new list: "+nodesValueList);
 
   }
 
@@ -138,7 +138,7 @@ class ANN {
     System.out.println("init weightsList structure: "+weightsList+"\n");
   }
 
-  private void setNodeList(int node, double bias) {
+  private void setNodeListValue(int node, double bias) {
     nodesValueList.set(node, bias);
   }
 
@@ -154,7 +154,7 @@ class ANN {
     }
     //set input values in nodesValueList
     for (int i=0;i<=numInputs-1;i++) {
-      setNodeList(i, inputs.get(i));
+      setNodeListValue(i, inputs.get(i));
     }
   }
 
@@ -164,14 +164,13 @@ class ANN {
 
   public Double forwardPass() {
     //array of sum values for non-input nodes
-    //sumValues index 0 is beginning of NON-INPUT nodes, final index is outputs
-    ArrayList<Double> sumValues = new ArrayList<Double>();
 
-    //for each node that isnt input
-    for (int i=numInputs;i<=nodesValueList.size()-numInputs;i++) {
-      sumValues.add(sumSj(i-numInputs));
+    //for each node that isnt input, replace bias with uj value
+    for (int i=0;i<nodesValueList.size()-numInputs;i++) {
+      //set new bias value
+      setNodeListValue(i+numInputs, ujFinder(i));
+      System.out.println("new nodesValueList"+nodesValueList);
     }
-    //calculate sum
 
     return 0.0;
   }
@@ -179,12 +178,12 @@ class ANN {
   //calculate sumValue=Sj for node j
   //Sj = SUMi(wij*uj)
   //TODO abstract method for >1 hidden layer and >1 output
-  private Double sumSj(int node) {
+  private Double ujFinder(int node) {
     //wijk represents for layer i each weight from node j to node k.
 
     //check for invalid node values
     if (node > numHiddenNodes+1) {
-      System.out.println("ERROR: invalide node ID passed to sumSj.");
+      System.out.println("ERROR: invalide node ID passed to sumSjujFinder.");
       System.exit(0);
     }
 
@@ -201,7 +200,8 @@ class ANN {
     int nodeNumInLayer = node % numHiddenNodesPerLayer;
     System.out.println("nodeNumInLayer: "+nodeNumInLayer);
 
-    Double Sj;
+    Double Sj=0.0;
+    Double uj=0.0;
     //Sj = SUMi(wij*uj)
     //if layer 1, do for each input
     if (layer==1) {
@@ -209,39 +209,36 @@ class ANN {
       for (int i=0;i<numInputs;i++) {
             double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
             System.out.println("wij: "+wij);
-            double uj = nodesValueList.get(i);
-            System.out.println("uj: "+uj);
-            // System.out.println("Sj value for i="+i+" is ="+Sj);
-
+            double ui = nodesValueList.get(i);
+            System.out.println("ui: "+ui);
+            Sj = Sj + wij*ui;
       }
-    }
-
-    //TODO if hidden layer to hidden layer
-
-    //if hidden layer to output
-    if (layer==numHiddenLayers+1) {
+      //if output layer
+    } else if (layer==numHiddenLayers+1) {
       //for each hidden layer node
       for (int i=0;i<numHiddenNodesPerLayer;i++) {
             double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
             System.out.println("wij: "+wij);
-            double uj = nodesValueList.get(i+((layer-1)*numHiddenNodesPerLayer));
-            System.out.println("uj: "+uj);
-            // System.out.println("Sj value for i="+i+" is ="+Sj);
-
+            double ui = nodesValueList.get(i+((layer-1)*numHiddenNodesPerLayer));
+            System.out.println("ui: "+ui);
+            Sj = Sj + wij*ui;
       }
     }
+      Sj = Sj + nodesValueList.get(node+numInputs);
+      System.out.println("Sj: "+Sj);
+      uj = sigmoid(Sj);
+      System.out.println("uj: "+uj);
 
-    //if hidden layer to hidden layer
+    //TODO if hidden layer to hidden layer
 
-    //if hidden layer to output
-
-
-    // if (node)
-    // weightsList.get()
-    return 0.0;
+    return uj;
   }
 
-  public Double backwardPass(ArrayList<Double> weightedSums, ArrayList<Double> activations) {
+  private Double sigmoid(Double Sj) {
+    return 1/(1+(Math.exp(-Sj)));
+  }
+
+  public Double backwardPass() {
     return 0.0;
 }
 }
