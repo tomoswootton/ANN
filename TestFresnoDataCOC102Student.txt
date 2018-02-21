@@ -1,0 +1,25 @@
+T - mean daily temperature in celcius
+W - wind speed in mph
+SR - solar radiation in Langleys
+DSP - Air Pressure in kPa
+DRH - Humidity in %
+PanE - Pan Evaporation (the predictand) in mm/day
+
+"You should use the five predictors (T,W,SR,DSP,DRH) to model PanE"
+"The data represent daily environmental factors at a site in California, USA"
+	
+Date		T	W	SR	DSP	DRH	PanE	
+01/01/1987	7.4	2.127	121.4	101	81	0.8		
+02/01/1987	8.3	1.736	137.2	101	81	0.8		
+03/01/1987	11.8	4.25	108.5	100.4	67	1.9		
+04/01/1987	10.5	4.141	147.1	99.8	79	1.7		
+05/01/1987	9.5	3.212	117.5	100.4	69	1.5		
+06/01/1987	6.8	3.107	90.9	100.6	82	0.8		
+07/01/1987	7.5	2.729	129.7	100.9	80	0.9		
+08/01/1987	6.1	2.027	234	101.5	79	1		
+09/01/1987	4.4	1.408	149.6	101.8	92	0.4		
+10/01/1987	4.5	2.187	121.6	101.7	88	0.5		
+11/01/1987	3.4	2.92	154.7	101.4	87	0.6		
+12/01/1987	3	2.988	111.2	101.3	90	0.5		
+13/01/1987	4.7	1.412	127.9	101.4	88	0.5		
+14/01/1987	5.2	1.886	161.7	101	72	0.9		
