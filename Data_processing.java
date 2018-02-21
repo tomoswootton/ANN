@@ -11,6 +11,10 @@ class Data_processing {
   //file to be read
   String fileName;
 
+  //min/max values in data setm, populated in standardise method
+  ArrayList<Double> min_values = new ArrayList<Double>();
+  ArrayList<Double> max_values = new ArrayList<Double>();
+
   public static void main(String[] args) {
     new Data_processing("TestFresnoDataCOC102Student.txt");
   }
@@ -125,17 +129,11 @@ class Data_processing {
   }
 
   public void standardise(ArrayList<ArrayList<Double>> data) {
-    //arrays to hold min and max values for each column, set as data entry in data array
-    ArrayList<Double> min_values = new ArrayList<Double>();
-    ArrayList<Double> max_values = new ArrayList<Double>();
-
     //populate min/max arrays with first data entry
     for (int i=0;i<data.get(0).size();i++) {
       min_values.add(data.get(0).get(i));
       max_values.add(data.get(0).get(i));
     }
-
-    System.out.println("pre-stand\nmin: "+min_values+"\nmax: "+max_values);
 
     //loop through data entries replacing min and max values
     for (ArrayList<Double> data_entry : data) {
@@ -149,8 +147,27 @@ class Data_processing {
         }
       }
     }
-    System.out.println("post-stand\nmin: "+min_values+"\nmax: "+max_values);
+
+    System.out.println("data before standardisation: "+data);
+
+    //loop through each data point in each data entry applying standardise function
+    for (ArrayList<Double> data_entry : data) {
+      for (int i=0;i<data_entry.size();i++) {
+        data_entry.set(i,standardiseFunction(i, data_entry.get(i)));
+      }
+    }
+    System.out.println("data after standardisation: "+data);
+  }
 
 
+
+  //function takes input into range [0.1,0.9] based on max and min values
+  private Double standardiseFunction(int data_point_index, Double data_point) {
+    return (((data_point - min_values.get(data_point_index))/(max_values.get(data_point_index)-min_values.get(data_point_index)))*0.8 + 0.1);
+  }
+
+  //TODO function not tested
+  private Double deStandardiseFunction(int data_point_index, Double data_point) {
+    return ((data_point-0.1)/0.8)*(max_values.get(i)-min_values.get(i))+min_values.get(i);
   }
 }
