@@ -15,13 +15,16 @@ class Data_processing {
   ArrayList<Double> min_values = new ArrayList<Double>();
   ArrayList<Double> max_values = new ArrayList<Double>();
 
+  //array of (sum of squares)^1/2 for all raw values in each column
+  ArrayList<Double> sqrt_sum_of_squares = new ArrayList<Double>();
+
   public static void main(String[] args) {
     new Data_processing("TestFresnoDataCOC102Student.txt");
   }
 
   public Data_processing(String fileName) {
     this.fileName = fileName;
-    standardise(importData());
+    System.out.println("sum squares: "+standardiseWRTSumOfAllSquares(importData()));
   }
 
   //method returns data in array
@@ -128,7 +131,7 @@ class Data_processing {
     return temp;
   }
 
-  public void standardise(ArrayList<ArrayList<Double>> data) {
+  public ArrayList<ArrayList<Double>> standardise(ArrayList<ArrayList<Double>> data) {
     //populate min/max arrays with first data entry
     for (int i=0;i<data.get(0).size();i++) {
       min_values.add(data.get(0).get(i));
@@ -148,18 +151,14 @@ class Data_processing {
       }
     }
 
-    System.out.println("data before standardisation: "+data);
-
     //loop through each data point in each data entry applying standardise function
     for (ArrayList<Double> data_entry : data) {
       for (int i=0;i<data_entry.size();i++) {
         data_entry.set(i,standardiseFunction(i, data_entry.get(i)));
       }
     }
-    System.out.println("data after standardisation: "+data);
+    return data;
   }
-
-
 
   //function takes input into range [0.1,0.9] based on max and min values
   private Double standardiseFunction(int data_point_index, Double data_point) {
@@ -168,6 +167,40 @@ class Data_processing {
 
   //TODO function not tested
   private Double deStandardiseFunction(int data_point_index, Double data_point) {
-    return ((data_point-0.1)/0.8)*(max_values.get(i)-min_values.get(i))+min_values.get(i);
+    return ((data_point-0.1)/0.8)*(max_values.get(data_point_index)-min_values.get(data_point_index))+min_values.get(data_point_index);
   }
+
+  private ArrayList<ArrayList<Double>> standardiseWRTSumOfAllSquares(ArrayList<ArrayList<Double>> data) {
+    //init sqrt_sum_of_squares array
+    for (int i=0;i<data.get(0).size();i++) {
+      sqrt_sum_of_squares.add(0.0);
+    }
+
+    //find sum of all column of all raw values
+    for (ArrayList<Double> data_entry : data) {
+      //for each data point
+      for (int i=0;i<data_entry.size();i++) {
+        sqrt_sum_of_squares.set(i,sqrt_sum_of_squares.get(i)+data_entry.get(i));
+      }
+    }
+
+    //square root each columns sum
+    for (int i=0;i<sqrt_sum_of_squares.size();i++) {
+      sqrt_sum_of_squares.set(i,Math.pow(sqrt_sum_of_squares.get(i),0.5));
+    }
+
+    //loop through each data point in each data entry applying standardise function
+    for (ArrayList<Double> data_entry : data) {
+      for (int i=0;i<data_entry.size();i++) {
+        data_entry.set(i,standardiseWRTSumOfAllSquaresFunction(i, data_entry.get(i)));
+      }
+    }
+    return data;
+  }
+
+  //TODO find better version, and reversed function
+  private Double standardiseWRTSumOfAllSquaresFunction(int data_point_index, Double data_point) {
+    return data_point / sqrt_sum_of_squares.get(data_point_index);
+  }
+
 }
