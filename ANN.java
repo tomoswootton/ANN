@@ -158,13 +158,18 @@ class ANN {
     }
   }
 
+  public ArrayList<Double> getNodeValueList() {
+    return this.nodesValueList;
+  }
+
+  public ArrayList<Double> getWeightList() {
+    return this.weightsList;
+  }
 
 
   //forward pass methods
 
   public Double forwardPass() {
-    //array of sum values for non-input nodes
-
     //for each node that isnt input, replace bias with uj value
     for (int i=0;i<nodesValueList.size()-numInputs;i++) {
       //set new bias value
@@ -177,7 +182,6 @@ class ANN {
 
   //calculate sumValue=Sj for node j
   //Sj = SUMi(wij*uj)
-  //TODO abstract method for >1 hidden layer and >1 output
   private Double ujFinder(int node) {
     //wijk represents for layer i each weight from node j to node k.
 
@@ -213,8 +217,8 @@ class ANN {
             System.out.println("ui: "+ui);
             Sj = Sj + wij*ui;
       }
-      //if output layer
-    } else if (layer==numHiddenLayers+1) {
+      //if hidden or output layer
+    } else {
       //for each hidden layer node
       for (int i=0;i<numHiddenNodesPerLayer;i++) {
             double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
@@ -223,13 +227,13 @@ class ANN {
             System.out.println("ui: "+ui);
             Sj = Sj + wij*ui;
       }
+      //if hidden layer to hidden layer
     }
       Sj = Sj + nodesValueList.get(node+numInputs);
       System.out.println("Sj: "+Sj);
       uj = sigmoid(Sj);
       System.out.println("uj: "+uj);
 
-    //TODO if hidden layer to hidden layer
 
     return uj;
   }
@@ -238,7 +242,22 @@ class ANN {
     return 1/(1+(Math.exp(-Sj)));
   }
 
+
+
+  //backward pass methods
+
   public Double backwardPass() {
+    //for each node that isnt input go backwards from output calculating  delta =  vales
+    //delta =   
+    for (int i=0;i<nodesValueList.size()-numInputs;i++) {
+      //set new bias value
+      setNodeListValue(i+numInputs, ujFinder(i));
+      System.out.println("new nodesValueList"+nodesValueList);
+    }
+
+    return 0.0;
+
+
     return 0.0;
 }
 }
