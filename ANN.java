@@ -9,7 +9,10 @@ class ANN {
   private int numHiddenLayers;
   private int numHiddenNodesPerLayer;
 
-  //array holds input values, biases of each hidden node and output values
+  //each new input data must also set predictand variable
+  private ArrayList<Double> predictands = new ArrayList<Double>();
+
+  //array holds input values, biases of each hidden node, output values
   //first n entries are inputs, n = numInputs, last m outputs, m=numOutputs
   private ArrayList<Double> nodesValueList = new ArrayList<Double>();
 
@@ -27,7 +30,7 @@ class ANN {
 
   //init methods
 
-  //needs number of inpit and hidden nodes to construct
+  //needs number of init and hidden nodes to construct
   public ANN(int numInputs, int numOutputs, int numHiddenNodes, int numHiddenLayers) {
     this.numInputs = numInputs;
     this.numOutputs = numOutputs;
@@ -42,6 +45,7 @@ class ANN {
     }
     // makeNodesList();
     makeWeightsList();
+    makePredictantList();
 
     //test example values
     nodesValueList.add(1.0);
@@ -60,9 +64,19 @@ class ANN {
     weightsList.get(1).get(0).set(0,2.0);
     weightsList.get(1).get(1).set(0,4.0);
 
-    System.out.println("weights List: "+weightsList);
+    // System.out.println("weights List: "+weightsList);
+    // forwardPass();
+    // System.out.println("\nforward pass new list: "+nodesValueList);
     forwardPass();
-    System.out.println("\nforward pass new list: "+nodesValueList);
+    backwardPass();
+
+    // ArrayList<Double> testInputs = new ArrayList<Double>();
+    // testInputs.add(5.0);
+    // testInputs.add(6.0);
+    // testInputs.add(9.0);
+    // setInputs(testInputs);
+    // System.out.println("Nodes List new inputs: "+nodesValueList);
+
 
   }
 
@@ -70,8 +84,8 @@ class ANN {
   //gives biases to hidden nodes with values between -2/n and 2/n. n=numInputs
   private void makeNodesList() {
 
-    //0 entries for input values, these will be replaced for each pass
-    for(int i=0;i<=numInputs-1;i++) {
+    //0 entries for input values(incl. predictand), these will be replaced for each pass
+    for(int i=0;i<numInputs-1;i++) {
       nodesValueList.add(0.0);
     }
 
@@ -138,6 +152,12 @@ class ANN {
     System.out.println("init weightsList structure: "+weightsList+"\n");
   }
 
+  private void makePredictantList() {
+    for (int i=0;i<numOutputs;i++) {
+      predictands.add(1.0);
+    }
+  }
+
   private void setNodeListValue(int node, double bias) {
     nodesValueList.set(node, bias);
   }
@@ -145,24 +165,29 @@ class ANN {
 
 
   //control methods
-
-  public void setInputs(ArrayList<Double> inputs) {
+  //receives array of inputs with predictants at the end
+  public void setInputs(ArrayList<Double> data) {
     //check for correct list size
-    if (inputs.size() != numInputs) {
+    if (data.size() != numInputs+predictands.size()) {
       System.out.println("ERROR in setInputNodes(): incorrect inputs list size");
       return;
     }
     //set input values in nodesValueList
-    for (int i=0;i<=numInputs-1;i++) {
-      setNodeListValue(i, inputs.get(i));
+    for (int i=0;i<numInputs-numOutputs;i++) {
+      setNodeListValue(i, data.get(i));
     }
+    //set predictands arrays
+    for (int i=numInputs;i<data.size();i++) {
+      predictands.set(i-numInputs,data.get(i));
+    }
+    System.out.println("predictand: "+predictands);
   }
 
   public ArrayList<Double> getNodeValueList() {
     return this.nodesValueList;
   }
 
-  public ArrayList<Double> getWeightList() {
+  public ArrayList<ArrayList<ArrayList<Double>>> getWeightList() {
     return this.weightsList;
   }
 
@@ -174,7 +199,6 @@ class ANN {
     for (int i=0;i<nodesValueList.size()-numInputs;i++) {
       //set new bias value
       setNodeListValue(i+numInputs, ujFinder(i));
-      System.out.println("new nodesValueList"+nodesValueList);
     }
 
     return 0.0;
@@ -187,7 +211,7 @@ class ANN {
 
     //check for invalid node values
     if (node > numHiddenNodes+1) {
-      System.out.println("ERROR: invalide node ID passed to sumSjujFinder.");
+      System.out.println("ERROR: invalid node ID passed to sumSjujFinder.");
       System.exit(0);
     }
 
@@ -196,13 +220,14 @@ class ANN {
     for (int i=1;i<=numHiddenLayers+1;i++) {
       if (node < i*numHiddenNodesPerLayer) {
         layer = i;
-        System.out.println("\nnode "+node+" in layer "+layer);
+        // System.out.println("\nnode "+node+" in layer "+layer);
         break;
       }
     }
+
     //find which number in layer node is
+    // System.out.println("nodeNumInLayer: "+nodeNumInLayer);
     int nodeNumInLayer = node % numHiddenNodesPerLayer;
-    System.out.println("nodeNumInLayer: "+nodeNumInLayer);
 
     Double Sj=0.0;
     Double uj=0.0;
@@ -212,9 +237,7 @@ class ANN {
       //for each input
       for (int i=0;i<numInputs;i++) {
             double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
-            System.out.println("wij: "+wij);
             double ui = nodesValueList.get(i);
-            System.out.println("ui: "+ui);
             Sj = Sj + wij*ui;
       }
       //if hidden or output layer
@@ -222,18 +245,14 @@ class ANN {
       //for each hidden layer node
       for (int i=0;i<numHiddenNodesPerLayer;i++) {
             double wij = weightsList.get(layer-1).get(i).get(nodeNumInLayer);
-            System.out.println("wij: "+wij);
             double ui = nodesValueList.get(i+((layer-1)*numHiddenNodesPerLayer));
-            System.out.println("ui: "+ui);
             Sj = Sj + wij*ui;
       }
-      //if hidden layer to hidden layer
     }
       Sj = Sj + nodesValueList.get(node+numInputs);
       System.out.println("Sj: "+Sj);
       uj = sigmoid(Sj);
       System.out.println("uj: "+uj);
-
 
     return uj;
   }
@@ -246,18 +265,38 @@ class ANN {
 
   //backward pass methods
 
-  public Double backwardPass() {
-    //for each node that isnt input go backwards from output calculating  delta =  vales
-    //delta =   
+  //TODO abstract method to multiple hidden layer, multiple output
+  public void backwardPass() {
+    //for each node that isnt input go backwards from output calculating  delta vales
+
+    //init empty array of size to fit delta values of every non-input node
+    ArrayList<Double> delta_values = new ArrayList<Double>();
     for (int i=0;i<nodesValueList.size()-numInputs;i++) {
-      //set new bias value
-      setNodeListValue(i+numInputs, ujFinder(i));
-      System.out.println("new nodesValueList"+nodesValueList);
+      delta_values.add(0.0);
     }
 
-    return 0.0;
-
-
-    return 0.0;
+    System.out.println("nodesList: "+nodesValueList);
+    //find delta values
+    //deltaj = wjO*deltaO*(uj(1-uj)) for hidden cell
+    //deltaj = (C-uO)*(uO(1-uO)), C=correct output for output cell
+    for (int i=nodesValueList.size()-1;i>=numInputs;i--) {
+      //if output
+      if (i == nodesValueList.size()-1) {
+        Double deltaO;
+        Double uO = nodesValueList.get(i);
+        deltaO = (predictands.get(0)-uO)*(uO*(1-uO));
+        delta_values.set(delta_values.size()-1,deltaO);
+        //if not output
+      } else {
+        Double wjO;
+        wjO = (weightsList.get(1).get(i-numHiddenNodesPerLayer).get(0));
+        Double uj;
+        uj = nodesValueList.get(i);
+        Double deltaj;
+        deltaj = wjO*delta_values.get(delta_values.size()-1)*(uj*(1-uj));
+        delta_values.set(i-numInputs,deltaj);
+      }
+    }
+    System.out.println("delta values: "+delta_values);
 }
 }

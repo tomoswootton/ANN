@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Random;
 
 /**
- * This program reads from .txt file
+ * Collection of methods to be used for data input and processing
 **/
 class Data_processing {
 
@@ -24,7 +24,7 @@ class Data_processing {
 
   public Data_processing(String fileName) {
     this.fileName = fileName;
-    System.out.println("sum squares: "+standardiseWRTSumOfAllSquares(importData()));
+    System.out.println("standardise: "+standardise(importData()));
   }
 
   //method returns data in array
@@ -183,15 +183,11 @@ class Data_processing {
         sqrt_sum_of_squares.set(i,sqrt_sum_of_squares.get(i)+Math.pow(data_entry.get(i),2));
       }
     }
-    System.out.println("sums ^2: "+sqrt_sum_of_squares);
-
 
     //square root each columns sum
     for (int i=0;i<sqrt_sum_of_squares.size();i++) {
       sqrt_sum_of_squares.set(i,Math.pow(sqrt_sum_of_squares.get(i),0.5));
     }
-
-    System.out.println("roots: "+sqrt_sum_of_squares);
 
     //loop through each data point in each data entry applying standardise function
     for (ArrayList<Double> data_entry : data) {
@@ -202,9 +198,9 @@ class Data_processing {
     return data;
   }
 
-  //TODO find better version, and reversed function
   private Double standardiseWRTSumOfAllSquaresFunction(int data_point_index, Double data_point) {
     return data_point / sqrt_sum_of_squares.get(data_point_index);
   }
 
+  private
 }
