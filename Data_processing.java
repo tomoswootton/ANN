@@ -176,18 +176,22 @@ class Data_processing {
       sqrt_sum_of_squares.add(0.0);
     }
 
-    //find sum of all column of all raw values
+    //find sum of all squared column raw values
     for (ArrayList<Double> data_entry : data) {
       //for each data point
       for (int i=0;i<data_entry.size();i++) {
-        sqrt_sum_of_squares.set(i,sqrt_sum_of_squares.get(i)+data_entry.get(i));
+        sqrt_sum_of_squares.set(i,sqrt_sum_of_squares.get(i)+Math.pow(data_entry.get(i),2));
       }
     }
+    System.out.println("sums ^2: "+sqrt_sum_of_squares);
+
 
     //square root each columns sum
     for (int i=0;i<sqrt_sum_of_squares.size();i++) {
       sqrt_sum_of_squares.set(i,Math.pow(sqrt_sum_of_squares.get(i),0.5));
     }
+
+    System.out.println("roots: "+sqrt_sum_of_squares);
 
     //loop through each data point in each data entry applying standardise function
     for (ArrayList<Double> data_entry : data) {
