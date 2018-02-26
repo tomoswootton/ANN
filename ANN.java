@@ -72,40 +72,33 @@ class ANN {
     weights_list.get(1).get(1).set(0,4.0);
     System.out.println("Weights List test values: "+weights_list);
 
+    for (int i=0;i<100000;i++) {
+      forwardPass();
+      if (i % 1000 == 0) {
+        System.out.println("\nepoch: "+i);
+        System.out.println(getOutputValue());
+      }
+      backwardPass();
+    }
+
 
 
     // System.out.println("weights List: "+weights_list);
     // forwardPass();
     // System.out.println("\nforward pass new list: "+nodes_value_List);
 
-    System.out.println("\nforward pass.");
-    System.out.println("nodes list: "+nodes_value_List);
-    System.out.println("weights list: "+weights_list);
-    forwardPass();
-    System.out.println("bias list: "+bias_values);
-    System.out.println("\nbackward pass.");
-    backwardPass();
-    System.out.println("\nbackward pass.");
-    System.out.println("weights list: "+weights_list);
-    System.out.println("nodes list: "+nodes_value_List);
-    System.out.println("bias list: "+bias_values);
+    // System.out.println("\nforward pass.");
+    // System.out.println("nodes list: "+nodes_value_List);
+    // System.out.println("weights list: "+weights_list);
+    // forwardPass();
+    // System.out.println("bias list: "+bias_values);
+    // System.out.println("\nbackward pass.");
+    // backwardPass();
+    // System.out.println("\nbackward pass.");
+    // System.out.println("weights list: "+weights_list);
+    // System.out.println("nodes list: "+nodes_value_List);
+    // System.out.println("bias list: "+bias_values);
 
-    System.out.println("\nReady for next epoch");
-    System.out.println("weights list: "+weights_list);
-    System.out.println("nodes list: "+nodes_value_List);
-    System.out.println("bias list: "+bias_values);
-
-    System.out.println("\nforward pass 2: ");
-    forwardPass();
-    System.out.println("weights list: "+weights_list);
-    System.out.println("nodes list: "+nodes_value_List);
-    System.out.println("bias list: "+bias_values);
-
-    System.out.println("\nbackward pass 2: ");
-    backwardPass();
-    System.out.println("weights list: "+weights_list);
-    System.out.println("nodes list: "+nodes_value_List);
-    System.out.println("bias list: "+bias_values);
 
     // ArrayList<Double> testInputs = new ArrayList<Double>();
     // testInputs.add(5.0);
@@ -248,7 +241,6 @@ class ANN {
     for (int i=num_inputs;i<nodes_value_List.size();i++) {
       bias_values.set(i-num_inputs, nodes_value_List.get(i));
     }
-    System.out.println("bias list: "+bias_values+"\n");
 
 
     //for each node that isnt input, store uj value
@@ -278,7 +270,6 @@ class ANN {
         break;
       }
     }
-    System.out.println("layer: "+layer);
 
 
     //find which number in layer node is
@@ -295,28 +286,19 @@ class ANN {
             double wij = weights_list.get(layer-1).get(i).get(nodeNumInLayer);
             double ui = nodes_value_List.get(i);
             Sj = Sj + wij*ui;
-            System.out.println("wij: "+wij+" ui:"+ui);
-            System.out.println("Sj: "+Sj);
 
       }
       //if hidden or output layer
     } else {
       //for each hidden layer node
-      System.out.println("output layer");
-      System.out.println("uj list: "+bias_values);
       for (int i=0;i<num_hidden_nodes_per_layer;i++) {
             double wij = weights_list.get(layer-1).get(i).get(nodeNumInLayer);
             double ui = bias_values.get(i+((layer-2)*num_hidden_nodes_per_layer));
             Sj = Sj + wij*ui;
-            System.out.println("wij: "+wij+" ui:"+ui);
-            System.out.println("Sj: "+Sj);
-
       }
     }
       Sj = Sj + bias_values.get(node);
-      System.out.println("bias: "+nodes_value_List.get(node+num_inputs));
       uj = sigmoid(Sj);
-      System.out.println("total: "+uj+"\n");
 
     return uj;
   }
@@ -360,7 +342,6 @@ class ANN {
         delta_values.set(i-num_inputs,deltaj);
       }
     }
-    System.out.println("delta values: "+delta_values);
 
     //Now, for each weight calculate new weights
     //wij = wij+step_size*deltaj*ui
@@ -384,9 +365,6 @@ class ANN {
           }
 
           Double wij_new = wij + step_size * deltaj * ui;
-          System.out.println("wij: "+wij+" deltaj: "+deltaj+" ui: "+ui);
-
-          System.out.println("new wij: "+wij_new);
           //set new weight
           setWeightsListValue(i,j,k,wij_new);
         }
@@ -397,9 +375,7 @@ class ANN {
     // wij = wij+step_size*deltaj*ui
     //ui for bias' is alwasy 1
     for (int i=0;i<bias_values.size();i++) {
-      System.out.println("wij: "+nodes_value_List.get(i+num_inputs)+" deltaj: "+delta_values.get(i));
       bias_values.set(i, nodes_value_List.get(i+num_inputs)+step_size*delta_values.get(i));
-      System.out.println("new bias: "+bias_values.get(i));
     }
 
     //set nodes_value_List to new bias values
@@ -408,4 +384,7 @@ class ANN {
     }
   }
 
+  public Double getOutputValue() {
+    return bias_values.get(bias_values.size()-1);
+  }
 }
