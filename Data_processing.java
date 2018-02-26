@@ -9,7 +9,7 @@ import java.util.Random;
 class Data_processing {
 
   //file to be read
-  String fileName;
+  String file_name;
 
   //min/max values in data setm, populated in standardise method
   ArrayList<Double> min_values = new ArrayList<Double>();
@@ -22,8 +22,8 @@ class Data_processing {
     new Data_processing("TestFresnoDataCOC102Student.txt");
   }
 
-  public Data_processing(String fileName) {
-    this.fileName = fileName;
+  public Data_processing(String file_name) {
+    this.file_name = file_name;
     System.out.println("standardise: "+standardise(importData()));
   }
 
@@ -39,7 +39,7 @@ class Data_processing {
 
     try {
         // FileReader reads text files in the default encoding, bufferedReader groups into lines
-        FileReader fileReader = new FileReader(fileName);
+        FileReader fileReader = new FileReader(file_name);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         //create data entry array
@@ -115,10 +115,10 @@ class Data_processing {
         bufferedReader.close();
     }
     catch(FileNotFoundException ex) {
-        System.out.println("Unable to open file '"+fileName + "'");
+        System.out.println("Unable to open file '"+file_name + "'");
     }
     catch(IOException ex) {
-        System.out.println("Error reading file '"+ fileName + "'");
+        System.out.println("Error reading file '"+ file_name + "'");
         ex.printStackTrace();
     }
     return data;
