@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-// import java.util.Math;
+
 
 class ANN {
 
@@ -9,16 +9,17 @@ class ANN {
   private int num_hidden_layers;
   private int num_hidden_nodes_per_layer;
   private Double step_size;
+  private Double alpha = 0.9;
 
   //each new input data must also set predictand variable
-  private ArrayList<Double> predictands = new ArrayList<Double>();
+  private ArrayList<Double> predictand_list = new ArrayList<Double>();
 
   //array holds input values, biases of each hidden node, output values
   //first n entries are inputs, n = num_inputs, last m outputs, m=num_outputs
-  private ArrayList<Double> nodes_value_List = new ArrayList<Double>();
+  private ArrayList<Double> nodes_value_list = new ArrayList<Double>();
 
-  //array of uj values calculated in forward pass
-  private ArrayList<Double> bias_values = new ArrayList<Double>();
+  //array of u values calculated in forward pass
+  private ArrayList<Double> u_value_list = new ArrayList<Double>();
 
   //3 dimensioal matrix of weights
   //wijk represents for layer i each weight from node j to node k.
@@ -42,97 +43,68 @@ class ANN {
     this.num_hidden_layers = num_hidden_layers;
     this.num_hidden_nodes_per_layer = num_hidden_nodes/num_hidden_layers;
     this.step_size = step_size;
-    System.out.println("\ninit info: \n");
-    System.out.println("inputs: "+num_inputs+"\noutputs: "+num_outputs+"\nhidden nodes: "+num_hidden_nodes+"\nhidden layers: "+num_hidden_layers+"\n");
+
+    //init info used for testing
+    // System.out.println("\nNew ANN");
+    // System.out.println("\ninit info: ");
+    // System.out.println("inputs: "+num_inputs+"\noutputs: "+num_outputs+"\nhidden nodes: "+num_hidden_nodes+"\nhidden layers: "+num_hidden_layers+"\n");
+
     //check valid number of hidden nodes given
     if (num_hidden_nodes % num_hidden_layers != 0) {
       System.out.println("ERROR: Number of hidden nodes must be divisible by number of hidden layers");
+      System.exit(0);
     }
-    // makeNodesList();
+    //check num_inputs, num_outputs > 1
+    if (num_inputs < 1 || num_outputs < 1) {
+      System.out.println("ERROR: Invalid number of inputs or outputs");
+      System.exit(0);
+    }
 
-    //test example values
-    nodes_value_List.add(1.0);
-    nodes_value_List.add(0.0);
-    nodes_value_List.add(1.0);
-    nodes_value_List.add(-6.0);
-    nodes_value_List.add(-3.92);
-    System.out.println("Nodes List: "+nodes_value_List);
-
+    makeNodesList();
     makeWeightsList();
     makePredictantList();
-    makeBiasList();
+    makeuiList();
 
-    //wijk represents for layer i each weight from node j to node k.
-    System.out.println("init Weights List: "+weights_list);
-    weights_list.get(0).get(0).set(0,3.0);
-    weights_list.get(0).get(0).set(1,6.0);
-    weights_list.get(0).get(1).set(0,4.0);
-    weights_list.get(0).get(1).set(1,5.0);
-    weights_list.get(1).get(0).set(0,2.0);
-    weights_list.get(1).get(1).set(0,4.0);
-    System.out.println("Weights List test values: "+weights_list);
-
-    for (int i=0;i<100000;i++) {
-      forwardPass();
-      if (i % 1000 == 0) {
-        System.out.println("\nepoch: "+i);
-        System.out.println(getOutputValue());
-      }
-      backwardPass();
-    }
+    // //wijk represents for layer i each weight from node j to node k.
+    // System.out.println("init Weights List: "+weights_list);
+    // weights_list.get(0).get(0).set(0,3.0);
+    // weights_list.get(0).get(0).set(1,6.0);
+    // weights_list.get(0).get(1).set(0,4.0);
+    // weights_list.get(0).get(1).set(1,5.0);
+    // weights_list.get(1).get(0).set(0,2.0);
+    // weights_list.get(1).get(1).set(0,4.0);
+    // System.out.println("Weights List test values: "+weights_list);
 
 
-
-    // System.out.println("weights List: "+weights_list);
-    // forwardPass();
-    // System.out.println("\nforward pass new list: "+nodes_value_List);
-
-    // System.out.println("\nforward pass.");
-    // System.out.println("nodes list: "+nodes_value_List);
-    // System.out.println("weights list: "+weights_list);
-    // forwardPass();
-    // System.out.println("bias list: "+bias_values);
-    // System.out.println("\nbackward pass.");
-    // backwardPass();
-    // System.out.println("\nbackward pass.");
-    // System.out.println("weights list: "+weights_list);
-    // System.out.println("nodes list: "+nodes_value_List);
-    // System.out.println("bias list: "+bias_values);
-
-
-    // ArrayList<Double> testInputs = new ArrayList<Double>();
-    // testInputs.add(5.0);
-    // testInputs.add(6.0);
-    // testInputs.add(9.0);
-    // setInputs(testInputs);
-    // System.out.println("Nodes List new inputs: "+nodes_value_List);
-
-
+    // for (int i=0;i<20000;i++) {
+    //   forwardPass();
+    //   if (i!=19999) {
+    //     backwardPass(true);
+    //   }
+    // }
   }
 
-  //fills nodes_value_List with place holders for input/output nodes and
-  //gives biases to hidden nodes with values between -2/n and 2/n. n=num_inputs
   private void makeNodesList() {
+    //fills nodes_value_list with place holders for input/output nodes and
+    //gives biases to hidden nodes with values between -2/n and 2/n. n=num_inputs
 
     //0 entries for input values(incl. predictand), these will be replaced for each pass
-    for(int i=0;i<num_inputs-1;i++) {
-      nodes_value_List.add(0.0);
+    for(int i=0;i<num_inputs;i++) {
+      nodes_value_list.add(0.0);
     }
 
     for(int i=num_inputs;i<num_hidden_nodes+num_inputs;i++) {
-      nodes_value_List.add((-2/this.num_inputs) + (Math.random() * (((2/this.num_inputs) - (-2/this.num_inputs)) + 1)));
+      nodes_value_list.add((-2/this.num_inputs) + (Math.random() * (((2/this.num_inputs) - (-2/this.num_inputs)) + 1)));
     }
 
     //add output nodes
     for (int i=0;i<=num_outputs-1;i++) {
-      nodes_value_List.add(0.0);
+      nodes_value_list.add(0.0);
     }
 
-    System.out.println("init nodes list: "+nodes_value_List);
   }
-
-  //using nodes_value_List, construct 3-d matrix of weights
   private void makeWeightsList() {
+    //using nodes_value_list, construct 3-d matrix of weights
 
     //for each layer
     for (int i=0;i<=num_hidden_layers;i++) {
@@ -177,87 +149,94 @@ class ANN {
       }
     }
   }
-
   private void makePredictantList() {
     for (int i=0;i<num_outputs;i++) {
-      predictands.add(1.0);
+      predictand_list.add(1.0);
     }
   }
-
-  private void makeBiasList() {
+  private void makeuiList() {
     //list of non-input nodes new bias'
-    for (int i=0;i<nodes_value_List.size()-num_inputs;i++) {
-      bias_values.add(0.0);
+    for (int i=0;i<nodes_value_list.size()-num_inputs;i++) {
+      u_value_list.add(0.0);
     }
   }
 
+  //setters
   private void setNodeListValue(int node, double bias) {
-    nodes_value_List.set(node, bias);
+    nodes_value_list.set(node, bias);
   }
-
   private void setWeightsListValue(int layer, int node_from, int node_to, Double value) {
     weights_list.get(layer).get(node_from).set(node_to,value);
   }
-
-  private void setBiasListValue(int node, double value) {
-    bias_values.set(node, value);
+  private void setuListValue(int node, double value) {
+    u_value_list.set(node, value);
+  }
+  public void setAlpha(Double value) {
+    this.alpha = value;
+  }
+  public void setStepSize(Double value) {
+    this.step_size = value;
   }
 
-
-
   //control methods
-  //receives array of inputs with predictants at the end
   public void setInputs(ArrayList<Double> data) {
+    //receives array of inputs with predictants at the end
+
     //check for correct list size
-    if (data.size() != num_inputs+predictands.size()) {
+    if (data.size() != num_inputs+predictand_list.size()) {
       System.out.println("ERROR in setInputNodes(): incorrect inputs list size");
       return;
     }
-    //set input values in nodes_value_List
+    //set input values in nodes_value_list
     for (int i=0;i<num_inputs-num_outputs;i++) {
       setNodeListValue(i, data.get(i));
     }
-    //set predictands arrays
+    //set predictand_list arrays
     for (int i=num_inputs;i<data.size();i++) {
-      predictands.set(i-num_inputs,data.get(i));
+      predictand_list.set(i-num_inputs,data.get(i));
     }
-    System.out.println("predictand: "+predictands);
   }
-
-  public ArrayList<Double> getNodeValueList() {
-    return this.nodes_value_List;
+  public Double getOutputValue() {
+    return u_value_list.get(u_value_list.size()-1);
   }
-
-  public ArrayList<ArrayList<ArrayList<Double>>> getWeightList() {
+  public void setNodeList(ArrayList<Double> nodes_value_list) {
+    this.nodes_value_list = nodes_value_list;
+  }
+  public void setWeigthsList(ArrayList<ArrayList<ArrayList<Double>>> weights_list) {
+    this.weights_list = weights_list;
+  }
+  public ArrayList<Double> getNodesList() {
+    return this.nodes_value_list;
+  }
+  public ArrayList<ArrayList<ArrayList<Double>>> getWeightsList() {
     return this.weights_list;
   }
-
+  //control testing
 
   //forward pass methods
-
   public void forwardPass() {
 
-    //set bias_values to current bias values
-    for (int i=num_inputs;i<nodes_value_List.size();i++) {
-      bias_values.set(i-num_inputs, nodes_value_List.get(i));
+    //set u_value_list to current bias values
+    for (int i=num_inputs;i<nodes_value_list.size();i++) {
+      u_value_list.set(i-num_inputs, nodes_value_list.get(i));
     }
 
 
     //for each node that isnt input, store uj value
-    for (int i=0;i<bias_values.size();i++) {
+    for (int i=0;i<u_value_list.size();i++) {
       //set new value
-      setBiasListValue(i, ujFinder(i));
+      setuListValue(i, uFinder(i));
     }
   }
+  private Double uFinder(int node) {
+    //calculate sumValue=Sj for node j
+    //Sj = SUMi(wij*uj)
 
-  //calculate sumValue=Sj for node j
-  //Sj = SUMi(wij*uj)
-  private Double ujFinder(int node) {
     //wijk represents for layer i each weight from node j to node k.
 
     //check for invalid node values
     if (node > num_hidden_nodes+1) {
-      System.out.println("ERROR: invalid node ID passed to sumSjujFinder.");
+      System.out.println("ERROR: invalid node ID passed to sumSjuFinder.");
       System.exit(0);
     }
 
@@ -278,13 +257,13 @@ class ANN {
 
     Double Sj=0.0;
     Double uj=0.0;
-    //Sj = SUMi(wij*uj)
+    //Sj = SUMi(wij*ui)
     //if layer 1, do for each input
     if (layer==1) {
       //for each input
       for (int i=0;i<num_inputs;i++) {
             double wij = weights_list.get(layer-1).get(i).get(nodeNumInLayer);
-            double ui = nodes_value_List.get(i);
+            double ui = nodes_value_list.get(i);
             Sj = Sj + wij*ui;
 
       }
@@ -293,52 +272,58 @@ class ANN {
       //for each hidden layer node
       for (int i=0;i<num_hidden_nodes_per_layer;i++) {
             double wij = weights_list.get(layer-1).get(i).get(nodeNumInLayer);
-            double ui = bias_values.get(i+((layer-2)*num_hidden_nodes_per_layer));
+            double ui = u_value_list.get(i+((layer-2)*num_hidden_nodes_per_layer));
             Sj = Sj + wij*ui;
       }
     }
-      Sj = Sj + bias_values.get(node);
+      Sj = Sj + u_value_list.get(node);
       uj = sigmoid(Sj);
 
     return uj;
   }
-
   private Double sigmoid(Double Sj) {
     return 1/(1+(Math.exp(-Sj)));
   }
 
-
-
   //backward pass methods
-
-  //TODO abstract method to multiple hidden layer, multiple output
   public void backwardPass() {
+    backwardPass(false);
+  }
+  public void backwardPass(Boolean momentum) {
     //for each node that isnt input go backwards from output calculating  delta vales
 
     //init empty array of size to fit delta values of every non-input node
     ArrayList<Double> delta_values = new ArrayList<Double>();
-    for (int i=0;i<nodes_value_List.size()-num_inputs;i++) {
+    for (int i=0;i<nodes_value_list.size()-num_inputs;i++) {
       delta_values.add(0.0);
     }
 
     //find delta values
-    //deltaj = wjO*deltaO*(uj(1-uj)) for hidden cell
+    //deltaj = wjk*deltaO*(uj(1-uj)) for hidden cell
     //deltaj = (C-uO)*(uO(1-uO)), C=correct output for output cell
-    for (int i=nodes_value_List.size()-1;i>=num_inputs;i--) {
-      //if output
-      if (i == nodes_value_List.size()-1) {
+    for (int i=nodes_value_list.size()-1;i>=num_inputs;i--) {
+      //if output node
+      if (i > nodes_value_list.size()-1-num_outputs) {
         Double deltaO;
-        Double uO = bias_values.get(i-num_inputs);
-        deltaO = (predictands.get(0)-uO)*(uO*(1-uO));
+        Double uO = u_value_list.get(i-num_inputs);
+        deltaO = (predictand_list.get(0)-uO)*(uO*(1-uO));
         delta_values.set(delta_values.size()-1,deltaO);
         //if not output
       } else {
-        Double wjO;
-        wjO = (weights_list.get(1).get(i-num_hidden_nodes_per_layer).get(0));
+        //find which layer node is in
+        int layer=1;
+        for (int j=1;j<=num_hidden_layers+1;j++) {
+          if (i - num_inputs < j*num_hidden_nodes_per_layer) {
+            layer = j;
+            break;
+          }
+        }
+        Double wjk;
+        wjk = (weights_list.get(layer).get(i-num_hidden_nodes_per_layer-1).get(0));
         Double uj;
-        uj = bias_values.get(i-num_inputs);
+        uj = u_value_list.get(i-num_inputs);
         Double deltaj;
-        deltaj = wjO*delta_values.get(delta_values.size()-1)*(uj*(1-uj));
+        deltaj = wjk*delta_values.get(delta_values.size()-1)*(uj*(1-uj));
         delta_values.set(i-num_inputs,deltaj);
       }
     }
@@ -354,17 +339,25 @@ class ANN {
           Double wij = weights_list.get(i).get(j).get(k);
           Double deltaj = delta_values.get((i)*num_hidden_nodes_per_layer + k);
           Double ui;
+
           //find ui
           //if input layer
           if (i==0) {
-            ui = nodes_value_List.get(j);
+            ui = nodes_value_list.get(j);
           }
           //else ui is in hidden layer
           else {
-            ui = bias_values.get(j+(i-1)*num_hidden_nodes_per_layer);
+            ui = u_value_list.get(j+(i-1)*num_hidden_nodes_per_layer);
           }
 
+          //find new wij value
           Double wij_new = wij + step_size * deltaj * ui;
+
+          //if momentum is requested
+          if (momentum) {
+            wij_new = wij + step_size * deltaj * ui + alpha * (wij_new - wij);
+          }
+
           //set new weight
           setWeightsListValue(i,j,k,wij_new);
         }
@@ -374,17 +367,14 @@ class ANN {
     //for each bias, calculate new bias values
     // wij = wij+step_size*deltaj*ui
     //ui for bias' is alwasy 1
-    for (int i=0;i<bias_values.size();i++) {
-      bias_values.set(i, nodes_value_List.get(i+num_inputs)+step_size*delta_values.get(i));
+    for (int i=0;i<u_value_list.size();i++) {
+      u_value_list.set(i, nodes_value_list.get(i+num_inputs)+step_size*delta_values.get(i));
     }
 
-    //set nodes_value_List to new bias values
-    for (int i=num_inputs;i<nodes_value_List.size();i++) {
-      nodes_value_List.set(i,bias_values.get(i-num_inputs));
+    //set nodes_value_list to new bias values
+    for (int i=num_inputs;i<nodes_value_list.size();i++) {
+      nodes_value_list.set(i,u_value_list.get(i-num_inputs));
     }
   }
 
-  public Double getOutputValue() {
-    return bias_values.get(bias_values.size()-1);
-  }
 }
