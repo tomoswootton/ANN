@@ -15,14 +15,9 @@ class Data_processing {
   //array of (sum of squares)^1/2 for all raw values in each column
   ArrayList<Double> sqrt_sum_of_squares = new ArrayList<Double>();
 
-  public static void main(String[] args) {
-    new Data_processing("TestFresnoDataCOC102Student.txt");
-  }
   public Data_processing(String file_name) {
     this.file_name = file_name;
   }
-
-  public Data_processing() {}
 
   //setters
   public void setFileName(String file_name) {

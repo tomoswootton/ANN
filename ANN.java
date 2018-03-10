@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 
-
 class ANN {
 
   private int num_inputs;
@@ -26,11 +25,6 @@ class ANN {
   //layer 0 is input layer
   //output is final layer
   private ArrayList<ArrayList<ArrayList<Double>>> weights_list = new ArrayList<ArrayList<ArrayList<Double>>>();
-
-  public static void main(String[] args) {
-    new ANN(2,1,2,1, 0.1);
-  }
-
 
 
   //init methods
@@ -65,23 +59,6 @@ class ANN {
     makePredictantList();
     makeuiList();
 
-    // //wijk represents for layer i each weight from node j to node k.
-    // System.out.println("init Weights List: "+weights_list);
-    // weights_list.get(0).get(0).set(0,3.0);
-    // weights_list.get(0).get(0).set(1,6.0);
-    // weights_list.get(0).get(1).set(0,4.0);
-    // weights_list.get(0).get(1).set(1,5.0);
-    // weights_list.get(1).get(0).set(0,2.0);
-    // weights_list.get(1).get(1).set(0,4.0);
-    // System.out.println("Weights List test values: "+weights_list);
-
-
-    // for (int i=0;i<20000;i++) {
-    //   forwardPass();
-    //   if (i!=19999) {
-    //     backwardPass(true);
-    //   }
-    // }
   }
 
   private void makeNodesList() {
@@ -318,8 +295,10 @@ class ANN {
             break;
           }
         }
+
+
         Double wjk;
-        wjk = (weights_list.get(layer).get(i-num_hidden_nodes_per_layer-1).get(0));
+        wjk = (weights_list.get(layer).get(i-num_inputs).get(0));
         Double uj;
         uj = u_value_list.get(i-num_inputs);
         Double deltaj;
@@ -355,7 +334,7 @@ class ANN {
 
           //if momentum is requested
           if (momentum) {
-            wij_new = wij + step_size * deltaj * ui + alpha * (wij_new - wij);
+            wij_new = wij + (step_size * deltaj * ui) + (alpha * (wij_new - wij));
           }
 
           //set new weight
